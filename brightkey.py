@@ -23,10 +23,15 @@ class BrightnessOverlay(QWidget):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.setStyleSheet("background-color: transparent;")
         
+        self.visible_state = False  
+        
         self.init_ui()
+        
+        # 简化定时器和动画变量
         self.hide_timer = QTimer(self)
         self.hide_timer.timeout.connect(self.start_fade_out)
         self.fade_animation = None
+
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -97,48 +102,50 @@ class BrightnessOverlay(QWidget):
         super().paintEvent(event)
 
     def show_with_value(self, value):
-        # 更新进度条和标签
+        # 更新值
         self.progress_bar.setValue(value)
         self.percent_label.setText(f"{value}%")
         
-        # 计算居中位置
-        screen_geometry = QApplication.primaryScreen().geometry()
-        x = int((screen_geometry.width() - self.width()) // 2)
-        y = int(screen_geometry.height() * 0.67)  # 位于屏幕67%高度处
-        self.move(x, y)
-        
-        # 停止任何正在进行的动画和计时器
+        # 停止任何计时器和动画
+        self.hide_timer.stop()
         if self.fade_animation and self.fade_animation.state() == QPropertyAnimation.Running:
             self.fade_animation.stop()
             
-        self.hide_timer.stop()
+        # 如果已经可见，只重置计时器并返回
+        if self.isVisible() and self.windowOpacity() > 0.5 and self.visible_state:
+            self.hide_timer.start(2000)
+            return
+            
+        # 窗口不可见，需要显示它
+        self.visible_state = True
         
-        # 重置窗口状态
-        self.setWindowOpacity(0.0)  # 先设为透明
-        self.show()  # 确保窗口可见
+        # 计算位置（因UI组件可能会改变大小，每次都重新计算）
+        self.adjustSize()  # 先调整大小以适应内容
+        screen_geometry = QApplication.primaryScreen().geometry()
+        x = int((screen_geometry.width() - self.width()) // 2)
+        y = int(screen_geometry.height() * 0.67)
+        self.move(x, y)
         
-        # 创建淡入动画
-        self.fade_animation = QPropertyAnimation(self, b"windowOpacity")
-        self.fade_animation.setDuration(200)
-        self.fade_animation.setStartValue(0.0)
-        self.fade_animation.setEndValue(1.0)
-        self.fade_animation.start()
+        # 显示窗口（完全不透明）
+        self.setWindowOpacity(1.0)
+        self.show()
         
-        # 启动计时器，2秒后淡出
+        # 启动隐藏计时器
         self.hide_timer.start(2000)
 
     def start_fade_out(self):
-        # 停止任何正在运行的动画
-        if self.fade_animation and self.fade_animation.state() == QPropertyAnimation.Running:
-            self.fade_animation.stop()
-        
         # 创建并启动淡出动画
         self.fade_animation = QPropertyAnimation(self, b"windowOpacity")
         self.fade_animation.setDuration(500)
         self.fade_animation.setStartValue(1.0)
         self.fade_animation.setEndValue(0.0)
-        self.fade_animation.finished.connect(self.hide)
+        self.fade_animation.finished.connect(self.hide_and_reset)
         self.fade_animation.start()
+    
+    def hide_and_reset(self):
+        # 隐藏窗口并重置状态
+        self.hide()
+        self.visible_state = False
 
 # 创建系统托盘图标类
 class SystemTrayIcon(QSystemTrayIcon):
