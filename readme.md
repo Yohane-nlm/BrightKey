@@ -10,6 +10,10 @@ An elegant Windows screen brightness controller using DDC/CI protocol with keybo
 - Runs in system tray for easy access and management
 - Lightweight and minimal resource usage
 
+## Screenshots
+
+![](./screenshots/brightkey.gif)
+
 ## How It Works
 
 BrightKey uses the DDC/CI (Display Data Channel Command Interface) protocol to communicate directly with your monitor. This allows for hardware-level brightness adjustment that works with most modern monitors, including external displays.
