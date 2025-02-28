@@ -1,0 +1,3 @@
+PyQt5
+screen_brightness_control
+keyboard
