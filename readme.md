@@ -81,11 +81,11 @@ The executable will be created in the `dist` directory.
 
 ## Customization
 
-You can modify the following aspects by editing the source code:
+You can modify the following aspects by editing the settings:
 
 - Keyboard shortcuts
-- UI appearance (colors, sizes, animations)
 - Brightness increment/decrement step
+
 
 ## Contributing
 
